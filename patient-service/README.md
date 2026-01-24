@@ -1,0 +1,1 @@
+# Patient Service intentionally keeps a minimal schema and exposes data via APIs
