@@ -1,0 +1,43 @@
+server:
+  port: 8081
+logging:
+  level:
+    root: INFO
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  file:
+    name: ./logs/patient-service.log
+  logback:
+    rollingpolicy:
+      max-file-size: 300MB
+      max-history: 30
+
+spring:
+  datasource:
+   url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:hospital_patient_db}
+   username: ${DB_USER:postgres}
+   password: ${DB_PASSWORD:1234}
+  jpa:
+    properties:
+      hibernate.jdbc.batch_size]: 50
+      hibernate.order_inserts: true
+      hibernate.batch_versioned_data: true
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  web:
+    error:
+      include-stacktrace: never
+      include-message: always
+      
+management:
+  endpoints:
+   web:
+    exposure:
+      include: health,info
+  endpoint:
+   health:
+    show-details: always
