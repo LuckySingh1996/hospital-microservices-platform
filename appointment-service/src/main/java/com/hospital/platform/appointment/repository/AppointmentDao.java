@@ -24,11 +24,10 @@ public class AppointmentDao {
 	}
 
 	public Optional<AppointmentEntity> findByAppointmentId(Long id) {
-		List<AppointmentEntity> appoinments = this.em.createQuery(
+		return this.em.createQuery(
 				"from AppointmentEntity where id = :id and isDeleted = false", AppointmentEntity.class)
 				.setParameter("id", id)
-				.getResultList();
-		return appoinments.stream().findFirst();
+				.getResultList().stream().findFirst();
 	}
 
 	public List<AppointmentEntity> findOverlappingAppointments(

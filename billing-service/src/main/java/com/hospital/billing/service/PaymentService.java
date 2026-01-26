@@ -9,7 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.hospital.billing.dao.BillRepository;
+import com.hospital.billing.dao.BillDao;
+import com.hospital.billing.dao.PaymentDao;
 import com.hospital.billing.dao.PaymentRepository;
 import com.hospital.billing.dto.CreatePaymentRequest;
 import com.hospital.billing.dto.PaymentCompletedEvent;
@@ -31,7 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 public class PaymentService {
 
 	private final PaymentRepository paymentRepository;
-	private final BillRepository billRepository;
+	private final PaymentDao paymentDao;
+	private final BillDao billingDao;
 	private final BillingService billingService;
 	private final KafkaProducerService kafkaProducerService;
 	private final MeterRegistry meterRegistry;
@@ -41,14 +43,14 @@ public class PaymentService {
 		log.info("Processing payment for bill: {}", request.getBillId());
 
 		// Idempotency check - prevent double payment
-		var existingPayment = this.paymentRepository.findByIdempotencyKey(request.getIdempotencyKey());
-		if (existingPayment.isPresent()) {
+		var existingPayment = this.paymentDao.existsByIdempotencyKey(request.getIdempotencyKey());
+		if (existingPayment) {
 			log.warn("Duplicate payment attempt detected: {}", request.getIdempotencyKey());
 			throw new DuplicatePaymentException("Payment already processed with this idempotency key");
 		}
 
 		// Verify bill exists
-		var bill = this.billRepository.findById(request.getBillId())
+		var bill = this.billingDao.findByBillId(request.getBillId())
 				.orElseThrow(() -> new ResourceNotFoundException("Bill not found: " + request.getBillId()));
 
 		// Validate payment amount
@@ -72,7 +74,7 @@ public class PaymentService {
 			payment.setStatus(Payment.PaymentStatus.COMPLETED);
 
 			// Save payment
-			Payment savedPayment = this.paymentRepository.save(payment);
+			Payment savedPayment = this.paymentDao.save(payment);
 
 			// Update bill
 			this.billingService.updateBillPayment(request.getBillId(), request.getAmount());
@@ -94,7 +96,7 @@ public class PaymentService {
 
 			payment.setStatus(Payment.PaymentStatus.FAILED);
 			payment.setFailureReason(e.getMessage());
-			this.paymentRepository.save(payment);
+			this.paymentDao.save(payment);
 
 			// Increment failure metric
 			Counter.builder("payments_failure_total")
@@ -106,16 +108,6 @@ public class PaymentService {
 
 			throw new PaymentProcessingException("Payment processing failed: " + e.getMessage());
 		}
-	}
-
-	@Transactional(readOnly = true)
-	public PaymentResponse getPayment(String paymentReference) {
-		log.info("Fetching payment: {}", paymentReference);
-
-		Payment payment = this.paymentRepository.findByPaymentReference(paymentReference)
-				.orElseThrow(() -> new ResourceNotFoundException("Payment not found: " + paymentReference));
-
-		return mapToResponse(payment);
 	}
 
 	private String processWithPaymentGateway(CreatePaymentRequest request) {

@@ -8,7 +8,7 @@ import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.hospital.billing.dao.BillRepository;
+import com.hospital.billing.dao.BillDao;
 import com.hospital.billing.dto.AppointmentBookedEvent;
 import com.hospital.billing.dto.BillGeneratedEvent;
 import com.hospital.billing.dto.BillResponse;
@@ -25,15 +25,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BillingService {
 
-	private final BillRepository billRepository;
 	private final KafkaProducerService kafkaProducerService;
+	private final BillDao dao;
 
 	@Transactional
 	public BillResponse createBill(CreateBillRequest request) {
 		log.info("Creating bill for appointment: {}", request.getAppointmentId());
 
 		// Prevent duplicate billing
-		if (this.billRepository.existsByAppointmentId(request.getAppointmentId())) {
+		if (this.dao.existsByAppointmentId(request.getAppointmentId())) {
 			throw new DuplicateBillException("Bill already exists for appointment: " + request.getAppointmentId());
 		}
 
@@ -51,7 +51,7 @@ public class BillingService {
 
 		bill.calculateTotalAndDue();
 
-		Bill savedBill = this.billRepository.save(bill);
+		Bill savedBill = this.dao.save(bill);
 		log.info("Bill created: {}", savedBill.getBillNumber());
 
 		// Publish bill generated event
@@ -64,7 +64,7 @@ public class BillingService {
 	public BillResponse getBill(Long billId) {
 		log.info("Fetching bill: {}", billId);
 
-		Bill bill = this.billRepository.findById(billId)
+		Bill bill = this.dao.findByBillId(billId)
 				.orElseThrow(() -> new ResourceNotFoundException("Bill not found: " + billId));
 
 		return mapToResponse(bill);
@@ -74,13 +74,13 @@ public class BillingService {
 	public void updateBillPayment(Long billId, BigDecimal paidAmount) {
 		log.info("Updating bill {} with payment: {}", billId, paidAmount);
 
-		Bill bill = this.billRepository.findById(billId)
+		Bill bill = this.dao.findByBillId(billId)
 				.orElseThrow(() -> new ResourceNotFoundException("Bill not found: " + billId));
 
 		bill.setPaidAmount(bill.getPaidAmount().add(paidAmount));
 		bill.calculateTotalAndDue();
 
-		this.billRepository.save(bill);
+		this.dao.save(bill);
 		log.info("Bill updated. Status: {}, Due: {}", bill.getStatus(), bill.getDueAmount());
 	}
 

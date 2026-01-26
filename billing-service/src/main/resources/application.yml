@@ -10,7 +10,7 @@ spring:
   
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
@@ -25,14 +25,18 @@ spring:
       auto-offset-reset: earliest
       enable-auto-commit: false
       properties:
-        spring.json.trusted.packages: "*"
+         spring.json.trusted.packages: "*"
+         spring.json.use.type.headers: false  # ← ADD THIS LINE
+         spring.json.value.default.type: com.hospital.billing.dto.AppointmentBookedEvent  # ← ADD THIS LINE
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       acks: all
       retries: 3
+      properties:
+         spring.json.add.type.headers: false  # ← ADD THIS LINE
     listener:
-      ack-mode: manual
+       ack-mode: manual
 
 server:
   port: ${SERVER_PORT:8083}
@@ -48,7 +52,7 @@ metrics:
       export:
         enabled: true
 jwt:
-  secret: ${JWT_SECRET:your-256-bit-secret-key-here-change-in-production-please-use-strong-key}
+  secret: ${JWT_SECRET:my-super-secure-jwt-secret-key-256-bit-long!!}
 
 logging:
   level:

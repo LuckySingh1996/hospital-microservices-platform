@@ -53,6 +53,9 @@ public class KafkaConfig {
 		config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
 		config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+		config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+		config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.hospital.billing.dto.AppointmentBookedEvent");
+
 		return new DefaultKafkaConsumerFactory<>(config);
 	}
 
