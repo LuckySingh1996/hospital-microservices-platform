@@ -1,7 +1,10 @@
 package com.hospital.platform.appointment.exception;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.kafka.common.KafkaException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
@@ -9,123 +12,117 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFound(
-            ResourceNotFoundException ex) {
-        log.error("Resource not found: {}", ex.getMessage());
-        
-        ErrorResponse error = ErrorResponse.builder()
-            .timestamp(LocalDateTime.now())
-            .status(HttpStatus.NOT_FOUND.value())
-            .error("Not Found")
-            .message(ex.getMessage())
-            .build();
-        
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-    
-    @ExceptionHandler(AppointmentConflictException.class)
-    public ResponseEntity<ErrorResponse> handleAppointmentConflict(
-            AppointmentConflictException ex) {
-        log.error("Appointment conflict: {}", ex.getMessage());
-        
-        ErrorResponse error = ErrorResponse.builder()
-            .timestamp(LocalDateTime.now())
-            .status(HttpStatus.CONFLICT.value())
-            .error("Conflict")
-            .message(ex.getMessage())
-            .build();
-        
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
-    
-    @ExceptionHandler(InvalidStatusTransitionException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidStatusTransition(
-            InvalidStatusTransitionException ex) {
-        log.error("Invalid status transition: {}", ex.getMessage());
-        
-        ErrorResponse error = ErrorResponse.builder()
-            .timestamp(LocalDateTime.now())
-            .status(HttpStatus.BAD_REQUEST.value())
-            .error("Bad Request")
-            .message(ex.getMessage())
-            .build();
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
-    
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
-        log.error("Validation failed: {}", ex.getMessage());
-        
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        
-        ErrorResponse error = ErrorResponse.builder()
-            .timestamp(LocalDateTime.now())
-            .status(HttpStatus.BAD_REQUEST.value())
-            .error("Validation Failed")
-            .message("Invalid input parameters")
-            .validationErrors(errors)
-            .build();
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
-    
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(
-            IllegalArgumentException ex) {
-        log.error("Illegal argument: {}", ex.getMessage());
-        
-        ErrorResponse error = ErrorResponse.builder()
-            .timestamp(LocalDateTime.now())
-            .status(HttpStatus.BAD_REQUEST.value())
-            .error("Bad Request")
-            .message(ex.getMessage())
-            .build();
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
-    
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(
-            AccessDeniedException ex) {
-        log.error("Access denied: {}", ex.getMessage());
-        
-        ErrorResponse error = ErrorResponse.builder()
-            .timestamp(LocalDateTime.now())
-            .status(HttpStatus.FORBIDDEN.value())
-            .error("Forbidden")
-            .message("Access denied")
-            .build();
-        
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
-    }
-    
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        log.error("Unexpected error occurred", ex);
-        
-        ErrorResponse error = ErrorResponse.builder()
-            .timestamp(LocalDateTime.now())
-            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .error("Internal Server Error")
-            .message("An unexpected error occurred")
-            .build();
-        
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-    }
+
+	@ExceptionHandler(ApplicationException.class)
+	public ResponseEntity<ErrorResponse> handleApplicationException(
+			ApplicationException ex,
+			HttpServletRequest request) {
+
+		ErrorCode code = ex.getErrorCode();
+
+		ErrorResponse error = ErrorResponse.builder()
+				.timestamp(LocalDateTime.now())
+				.status(code.getHttpStatus().value())
+				.error(code.name())
+				.message(ex.getMessage())
+				.build();
+
+		log.error("ApplicationException [{}]: {}", code.name(), ex.getMessage());
+
+		return ResponseEntity
+				.status(code.getHttpStatus())
+				.body(error);
+	}
+
+	// 🔹 Validation errors (DTO validation)
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ErrorResponse> handleValidationExceptions(
+			MethodArgumentNotValidException ex) {
+
+		log.error("Validation failed", ex);
+
+		Map<String, String> errors = new HashMap<>();
+		ex.getBindingResult().getAllErrors().forEach(error -> {
+			String fieldName = ((FieldError) error).getField();
+			String errorMessage = error.getDefaultMessage();
+			errors.put(fieldName, errorMessage);
+		});
+
+		ErrorResponse error = ErrorResponse.builder()
+				.timestamp(LocalDateTime.now())
+				.status(ErrorCode.VALIDATION_ERROR.getHttpStatus().value())
+				.error(ErrorCode.VALIDATION_ERROR.name())
+				.message("Invalid input parameters")
+				.validationErrors(errors)
+				.build();
+
+		return ResponseEntity
+				.status(ErrorCode.VALIDATION_ERROR.getHttpStatus())
+				.body(error);
+	}
+
+	// 🔹 Security: forbidden
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<ErrorResponse> handleAccessDenied(
+			AccessDeniedException ex) {
+
+		log.error("Access denied: {}", ex.getMessage());
+
+		ErrorResponse error = ErrorResponse.builder()
+				.timestamp(LocalDateTime.now())
+				.status(ErrorCode.UNAUTHORIZED.getHttpStatus().value())
+				.error(ErrorCode.UNAUTHORIZED.name())
+				.message("Access denied")
+				.build();
+
+		return ResponseEntity
+				.status(ErrorCode.UNAUTHORIZED.getHttpStatus())
+				.body(error);
+	}
+
+	@ExceptionHandler(KafkaException.class)
+	public ResponseEntity<ErrorResponse> handleKafkaException(
+			Exception ex,
+			HttpServletRequest request) {
+
+		log.error("Kafka exception", ex);
+
+		ErrorResponse error = ErrorResponse.builder()
+				.timestamp(LocalDateTime.now())
+				.status(ErrorCode.INTERNAL_ERROR.getHttpStatus().value())
+				.error(ErrorCode.INTERNAL_ERROR.name())
+				.message(ex.getMessage())
+				.build();
+
+		return ResponseEntity
+				.status(ErrorCode.INTERNAL_ERROR.getHttpStatus())
+				.body(error);
+	}
+
+	// 🔹 Fallback handler (unexpected bugs)
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ErrorResponse> handleGenericException(
+			Exception ex,
+			HttpServletRequest request) {
+
+		log.error("Unhandled exception", ex);
+
+		ErrorResponse error = ErrorResponse.builder()
+				.timestamp(LocalDateTime.now())
+				.status(ErrorCode.INTERNAL_ERROR.getHttpStatus().value())
+				.error(ErrorCode.INTERNAL_ERROR.name())
+				.message("An unexpected error occurred")
+				.build();
+
+		return ResponseEntity
+				.status(ErrorCode.INTERNAL_ERROR.getHttpStatus())
+				.body(error);
+	}
+
 }

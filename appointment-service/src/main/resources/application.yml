@@ -9,7 +9,7 @@ logging:
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
   file:
-    name: ./logs/patient-service.log
+    name: ./logs/appointment-service.log
   logback:
     rollingpolicy:
       max-file-size: 300MB
@@ -52,6 +52,10 @@ spring:
       acks: all
       retries: 3
       properties:
+        max.block.ms: 5000
+        request.timeout.ms: 5000
+        delivery.timeout.ms: 7000
+        linger.ms: 0
         enable.idempotence: true
         max.in.flight.requests.per.connection: 5
     consumer:
@@ -62,6 +66,9 @@ spring:
       enable-auto-commit: false
       properties:
         spring.json.trusted.packages: "*"
+    topics:
+      appointment-booked: appointment.booked
+      appointment-booked-dlt: appointment.booked.dlt
     listener:
       ack-mode: manual
 
@@ -69,7 +76,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   metrics:
     tags:
       application: ${spring.application.name}

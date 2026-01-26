@@ -29,14 +29,14 @@ public class PatientValidationService {
 	private void validateDateOfBirth(LocalDate dob) {
 		if (dob.isAfter(LocalDate.now())) {
 			log.warn("Invalid DOB provided");
-			throw new ApplicationException(ErrorCode.INVALID_DOB);
+			throw new ApplicationException(ErrorCode.VALIDATION_ERROR, "Invalid DOB Provided");
 		}
 	}
 
 	private void validateMobile(String mobile) {
 		if (!mobile.matches("^[1-9][0-9]{9,14}$")) {
 			log.warn("Invalid mobile number provided");
-			throw new ApplicationException(ErrorCode.INVALID_MOBILE);
+			throw new ApplicationException(ErrorCode.VALIDATION_ERROR, "Invalid Mobile Provided");
 		}
 	}
 
@@ -44,12 +44,12 @@ public class PatientValidationService {
 		if (emergencyMobile != null) {
 			if (!emergencyMobile.matches("^[1-9][0-9]{9,14}$")) {
 				log.warn("Invalid emergency mobile number provided as : {}", emergencyMobile);
-				throw new ApplicationException(ErrorCode.INVALID_MOBILE, "Invalid emergency mobile number format");
+				throw new ApplicationException(ErrorCode.VALIDATION_ERROR, "Invalid emergency mobile number format");
 			}
 			if (emergencyMobile.equals(mobile)) {
 				log.warn("Emergency mobile number is same as primary mobile");
 				throw new ApplicationException(
-						ErrorCode.INVALID_MOBILE, "Emergency mobile number must be different from primary mobile");
+						ErrorCode.VALIDATION_ERROR, "Emergency mobile number must be different from primary mobile");
 			}
 		}
 	}
@@ -58,15 +58,14 @@ public class PatientValidationService {
 		if (!name.matches(NAME_REGEX)) {
 			log.warn("Invalid {} provided", field);
 			throw new ApplicationException(
-					ErrorCode.INVALID_NAME,
-					"Invalid input for " + field);
+					ErrorCode.VALIDATION_ERROR, "Invalid input for " + field);
 		}
 	}
 
 	private void validateEmail(String email) {
 		if (email != null && (!email.contains("@") || email.endsWith("@"))) {
 			log.warn("Invalid email provided as : {}", email);
-			throw new ApplicationException(ErrorCode.INVALID_EMAIL);
+			throw new ApplicationException(ErrorCode.VALIDATION_ERROR, "Invalid Email Provided");
 		}
 
 	}

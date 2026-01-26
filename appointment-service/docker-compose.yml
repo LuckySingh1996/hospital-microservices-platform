@@ -11,7 +11,7 @@ services:
       - "5433:5432"
     volumes:
       - appointment-db-data:/var/lib/postgresql/data
-      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/appointment_service_schema.sql:/docker-entrypoint-initdb.d/appointment_service_schema.sql
     networks:
       - hospital-network
     healthcheck:

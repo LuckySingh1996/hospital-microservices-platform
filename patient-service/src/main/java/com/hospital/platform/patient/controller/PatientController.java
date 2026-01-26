@@ -2,6 +2,7 @@ package com.hospital.platform.patient.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ public class PatientController {
 	}
 
 	@PostMapping
+	@PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
 	public ResponseEntity<PatientResponseDTO> registerPatient(@Valid @RequestBody PatientRequestDTO request) {
 		log.info("POST /patients registration request received");
 
@@ -39,6 +41,7 @@ public class PatientController {
 	}
 
 	@GetMapping("/{hospitalPatientId}")
+	@PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST', 'DOCTOR')")
 	public ResponseEntity<PatientResponseDTO> getPatientByHospitalPatientId(@PathVariable Integer hospitalPatientId) {
 		log.info("GET /patients/{}", hospitalPatientId);
 
@@ -48,6 +51,7 @@ public class PatientController {
 	}
 
 	@DeleteMapping("/{hospitalPatientId}")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Void> deletePatient(@PathVariable Integer hospitalPatientId) {
 		log.info("DELETE /patients/{}", hospitalPatientId);
 

@@ -35,13 +35,17 @@ spring:
       
 management:
   endpoints:
-   web:
-    exposure:
-      include: health,info
-  endpoint:
-   health:
-    show-details: always
-security:
-      jwt:
-       secret: "357638792F423F4428472B4B6250655368566D597133743677397A2443264629"
-       access-token-validity: 6000
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+jwt:
+  secret: ${JWT_SECRET:my-super-secure-jwt-secret-key-256-bit-long!!}
+  expiration: 86400000

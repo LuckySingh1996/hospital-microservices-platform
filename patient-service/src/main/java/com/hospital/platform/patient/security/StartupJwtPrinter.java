@@ -1,4 +1,4 @@
-package com.hospital.platform.patient.security;
+/*package com.hospital.platform.patient.security;
 
 import java.util.List;
 
@@ -36,3 +36,4 @@ public class StartupJwtPrinter implements CommandLineRunner {
 		log.info("========================================================\n");
 	}
 }
+*/
