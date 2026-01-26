@@ -14,7 +14,9 @@ import com.hospital.billing.dto.BillGeneratedEvent;
 import com.hospital.billing.dto.BillResponse;
 import com.hospital.billing.dto.CreateBillRequest;
 import com.hospital.billing.entity.Bill;
+import com.hospital.billing.exception.ApplicationException;
 import com.hospital.billing.exception.DuplicateBillException;
+import com.hospital.billing.exception.ErrorCode;
 import com.hospital.billing.kafka.KafkaProducerService;
 
 import lombok.RequiredArgsConstructor;
@@ -34,7 +36,7 @@ public class BillingService {
 
 		// Prevent duplicate billing
 		if (this.dao.existsByAppointmentId(request.getAppointmentId())) {
-			throw new DuplicateBillException("Bill already exists for appointment: " + request.getAppointmentId());
+			throw new ApplicationException(ErrorCode.DUPLICATE_BILL, "Bill already exists for appointment: " + request.getAppointmentId());
 		}
 
 		Bill bill = Bill.builder()
