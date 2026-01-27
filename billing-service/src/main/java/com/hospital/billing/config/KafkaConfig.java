@@ -19,6 +19,9 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 @Configuration
 public class KafkaConfig {
@@ -65,5 +68,19 @@ public class KafkaConfig {
 		factory.setConsumerFactory(consumerFactory());
 		factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
 		return factory;
+	}
+
+	@Bean
+	RetryTemplate kafkaRetryTemplate() {
+		RetryTemplate retryTemplate = new RetryTemplate();
+
+		SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(3);
+		FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
+		backOffPolicy.setBackOffPeriod(5000); // 5 seconds
+
+		retryTemplate.setRetryPolicy(retryPolicy);
+		retryTemplate.setBackOffPolicy(backOffPolicy);
+
+		return retryTemplate;
 	}
 }

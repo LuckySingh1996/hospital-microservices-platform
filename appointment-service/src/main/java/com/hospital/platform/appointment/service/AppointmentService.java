@@ -67,7 +67,7 @@ public class AppointmentService {
 		// Publish Kafka event
 		publishAppointmentBookedEvent(savedAppointment);
 
-		return this.mapper.mapToResponse(savedAppointment);
+		return this.mapper.toResponse(savedAppointment);
 	}
 
 	public AppointmentResponse getAppointment(Long appointmentId) {
@@ -76,7 +76,7 @@ public class AppointmentService {
 		AppointmentEntity appointment = this.dao.findByAppointmentId(appointmentId).orElseThrow(() -> new ApplicationException(ErrorCode.APPOINTMENT_NOT_FOUND,
 				"Appointment not found with ID: " + appointmentId));
 
-		return this.mapper.mapToResponse(appointment);
+		return this.mapper.toResponse(appointment);
 	}
 
 	private void validateAppointmentTime(LocalDateTime appointmentTime) {
@@ -91,7 +91,7 @@ public class AppointmentService {
 	}
 
 	private void publishAppointmentBookedEvent(AppointmentEntity appointment) {
-		AppointmentBookedEvent event = this.mapper.fromAppointmentBookedEvent(appointment);
+		AppointmentBookedEvent event = this.mapper.fromAppointmentEntity(appointment);
 
 		this.kafkaProducerService.sendAppointmentBookedEvent(event);
 	}

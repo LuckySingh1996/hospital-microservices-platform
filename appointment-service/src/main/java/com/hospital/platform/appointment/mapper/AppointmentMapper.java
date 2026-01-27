@@ -35,7 +35,7 @@ public class AppointmentMapper {
 
 	}
 
-	public AppointmentResponse mapToResponse(AppointmentEntity appointment) {
+	public AppointmentResponse toResponse(AppointmentEntity appointment) {
 		return AppointmentResponse.builder()
 				.id(appointment.getId())
 				.appointmentNumber(appointment.getAppointmentNumber())
@@ -59,7 +59,7 @@ public class AppointmentMapper {
 				.build();
 	}
 
-	public AppointmentBookedEvent fromAppointmentBookedEvent(AppointmentEntity appointment) {
+	public AppointmentBookedEvent fromAppointmentEntity(AppointmentEntity appointment) {
 		return AppointmentBookedEvent.builder()
 				.eventId(UUID.randomUUID().toString())
 				.appointmentNumber(appointment.getAppointmentNumber())
