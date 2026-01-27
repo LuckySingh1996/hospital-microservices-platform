@@ -1,0 +1,3 @@
+CREATE DATABASE hospital_patient_db;
+CREATE DATABASE hospital_appointment_db;
+CREATE DATABASE hospital_billing_db;
