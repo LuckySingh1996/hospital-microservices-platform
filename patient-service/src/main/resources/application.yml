@@ -1,50 +1,50 @@
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}
+  error:
+    include-message: always
+    include-binding-errors: always
+
 logging:
   level:
     root: INFO
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
-  file:
-    name: ./logs/patient-service.log
-  logback:
-    rollingpolicy:
-      max-file-size: 300MB
-      max-history: 30
 
 spring:
+  application:
+    name: patient-service
+
   datasource:
-   url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:hospital_patient_db}
-   username: ${DB_USER:postgres}
-   password: ${DB_PASSWORD:1234}
+    url: jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:hospital_patient_db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
   jpa:
-    properties:
-      hibernate.jdbc.batch_size]: 50
-      hibernate.order_inserts: true
-      hibernate.batch_versioned_data: true
+    open-in-view: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        batch_versioned_data: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
   jackson:
     deserialization:
       fail-on-unknown-properties: true
-  web:
-    error:
-      include-stacktrace: never
-      include-message: always
-      
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics
   metrics:
     tags:
       application: ${spring.application.name}
-  prometheus:
-    metrics:
-      export:
-        enabled: true
 
 jwt:
   secret: ${JWT_SECRET:my-super-secure-jwt-secret-key-256-bit-long!!}
