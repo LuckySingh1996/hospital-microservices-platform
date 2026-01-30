@@ -17,7 +17,6 @@ public class PaymentDao {
 
 	public Payment save(Payment entity) {
 		this.em.persist(entity);
-		this.em.flush();
 		return entity;
 	}
 

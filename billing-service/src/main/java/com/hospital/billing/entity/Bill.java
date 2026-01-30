@@ -12,11 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "bills", indexes = {
-    @Index(name = "idx_bill_number", columnList = "bill_number"),
-    @Index(name = "idx_appointment_id", columnList = "appointment_id"),
-    @Index(name = "idx_patient_id", columnList = "patient_id")
-})
+@Table(name = "bills")
 @Data
 @Builder
 @NoArgsConstructor
@@ -30,7 +26,7 @@ public class Bill {
     @Column(name = "bill_number", unique = true, nullable = false)
     private String billNumber;
     
-    @Column(name = "appointment_id", nullable = false)
+    @Column(name = "appointment_id", nullable = false, unique = true)
     private Long appointmentId;
     
     @Column(name = "patient_id", nullable = false)

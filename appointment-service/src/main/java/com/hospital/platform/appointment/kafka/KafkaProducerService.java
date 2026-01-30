@@ -48,7 +48,7 @@ public class KafkaProducerService {
 		} catch (ApplicationException ae) {
 			log.error("Kafka publish failed after retries for {}", event.getAppointmentNumber(), ae);
 			sendToDeadLetterTopic(event, ae);
-			throw ae; // Re-throw specific exception
+			throw ae;
 
 		} catch (Exception ex) {
 			log.error("Unexpected Kafka publish failure for {}",

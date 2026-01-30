@@ -10,7 +10,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Bill Response
 @Data
 @Builder
 @NoArgsConstructor

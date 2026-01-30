@@ -18,7 +18,6 @@ public class PatientDao {
 
 	public PatientEntity save(PatientEntity entity) {
 		this.em.persist(entity);
-		this.em.flush();
 		return entity;
 	}
 

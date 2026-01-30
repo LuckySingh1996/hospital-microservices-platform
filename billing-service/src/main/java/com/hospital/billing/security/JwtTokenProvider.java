@@ -51,5 +51,3 @@ public class JwtTokenProvider {
 
 	private SecretKey getSigningKey() { return Keys.hmacShaKeyFor(this.jwtSecret.getBytes(StandardCharsets.UTF_8)); }
 }
-
-// JwtAuthenticationEntryPoint.java

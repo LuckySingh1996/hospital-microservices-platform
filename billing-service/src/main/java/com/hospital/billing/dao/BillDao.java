@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.hospital.billing.entity.Bill;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
 
 @Repository
@@ -18,7 +19,6 @@ public class BillDao {
 
 	public Bill save(Bill entity) {
 		this.em.persist(entity);
-		this.em.flush();
 		return entity;
 	}
 
@@ -33,6 +33,16 @@ public class BillDao {
 		return this.em.createQuery("from Bill where id = :billId", Bill.class)
 				.setParameter("billId", billId)
 				.getResultList().stream().findFirst();
+	}
+
+	public Optional<Bill> findByIdForUpdate(Long billId) {
+		return this.em.createQuery(
+				"from Bill b where b.id = :billId", Bill.class)
+				.setParameter("billId", billId)
+				.setLockMode(LockModeType.PESSIMISTIC_WRITE)
+				.getResultList()
+				.stream()
+				.findFirst();
 	}
 
 }

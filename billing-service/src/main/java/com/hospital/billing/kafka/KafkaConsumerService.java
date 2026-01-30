@@ -39,7 +39,6 @@ public class KafkaConsumerService {
 				topic, partition, offset);
 
 		try {
-			// ✅ RETRY PROCESSING
 			this.retryTemplate.execute(context -> {
 				log.info("Processing appointment booked event (attempt {}): {}",
 						context.getRetryCount() + 1,
@@ -49,13 +48,11 @@ public class KafkaConsumerService {
 				return null;
 			});
 
-			// ✅ ACKNOWLEDGE ONLY AFTER SUCCESS
 			acknowledgment.acknowledge();
 			log.info("Successfully processed appointment booked event: {}",
 					event.getAppointmentNumber());
 
 		} catch (ApplicationException ex) {
-			// ✅ BUSINESS EXCEPTIONS (like DUPLICATE_BILL) - Don't retry, just acknowledge
 			if (ex.getErrorCode() == ErrorCode.DUPLICATE_BILL) {
 				log.warn("Duplicate bill for appointment: {} - Acknowledging and skipping",
 						event.getAppointmentId());
@@ -63,18 +60,16 @@ public class KafkaConsumerService {
 				return;
 			}
 
-			// ✅ OTHER BUSINESS FAILURES - Send to DLT
 			log.error("Business failure processing appointment {} after retries - Sending to DLT",
 					event.getAppointmentNumber(), ex);
 			sendConsumerToDLT(event, ex);
-			acknowledgment.acknowledge(); // Acknowledge to prevent infinite redelivery
+			acknowledgment.acknowledge();
 
 		} catch (Exception ex) {
-			// ✅ TECHNICAL FAILURES - Send to DLT
 			log.error("Technical failure processing appointment {} after retries - Sending to DLT",
 					event.getAppointmentNumber(), ex);
 			sendConsumerToDLT(event, ex);
-			acknowledgment.acknowledge(); // Acknowledge to prevent infinite redelivery
+			acknowledgment.acknowledge();
 		}
 	}
 

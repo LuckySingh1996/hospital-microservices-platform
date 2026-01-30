@@ -33,7 +33,6 @@ public class KafkaProducerService {
 	private final KafkaTemplate<String, Object> kafkaTemplate;
 	private final RetryTemplate retryTemplate;
 
-	// ✅ BILL GENERATED EVENT WITH RETRY & DLT
 	public void sendBillGeneratedEvent(BillGeneratedEvent event) {
 		log.info("Publishing bill generated event: {}", event.getBillNumber());
 
@@ -75,7 +74,6 @@ public class KafkaProducerService {
 		}
 	}
 
-	// ✅ PAYMENT COMPLETED EVENT WITH RETRY & DLT
 	public void sendPaymentCompletedEvent(PaymentCompletedEvent event) {
 		log.info("Publishing payment completed event: {}", event.getPaymentReference());
 
@@ -117,7 +115,6 @@ public class KafkaProducerService {
 		}
 	}
 
-	// ✅ PAYMENT FAILED EVENT WITH RETRY & DLT
 	public void sendPaymentFailedEvent(PaymentFailedEvent event) {
 		log.info("Publishing payment failed event for bill: {}", event.getBillId());
 
@@ -156,7 +153,6 @@ public class KafkaProducerService {
 		}
 	}
 
-	// ✅ DLT METHODS
 	private void sendBillToDLT(BillGeneratedEvent event, Exception cause) {
 		try {
 			this.kafkaTemplate.send(BILL_GENERATED_DLT,

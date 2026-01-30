@@ -13,7 +13,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import lombok.RequiredArgsConstructor;
 
-// SecurityConfig.java
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -24,7 +23,7 @@ public class SecurityConfig {
 	private final AuthenticationEntryPoint authEntryPoint;
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
 				.csrf(CsrfConfigurer::disable)
 				.authorizeHttpRequests(auth -> auth
@@ -38,5 +37,3 @@ public class SecurityConfig {
 		return http.build();
 	}
 }
-
-// JwtAuthenticationFilter.java

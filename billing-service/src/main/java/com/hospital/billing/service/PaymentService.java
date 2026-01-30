@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.hospital.billing.dao.BillDao;
@@ -37,7 +36,7 @@ public class PaymentService {
 	private final MeterRegistry meterRegistry;
 	private final PaymentMapper mapper;
 
-	@Transactional(isolation = Isolation.SERIALIZABLE)
+	@Transactional
 	public PaymentResponse processPayment(CreatePaymentRequest request) {
 		log.info("Processing payment for bill: {}", request.getBillId());
 
@@ -45,16 +44,13 @@ public class PaymentService {
 		Payment payment = this.mapper.fromrequest(request);
 
 		try {
-			// Simulate payment gateway processing
 			String transactionId = processWithPaymentGateway(request);
 			payment.setTransactionId(transactionId);
 			payment.setStatus(Payment.PaymentStatus.COMPLETED);
 
-			// Save payment
-			Payment savedPayment = this.paymentDao.save(payment);
-
-			// Update bill
 			this.billingService.updateBillPayment(request.getBillId(), request.getAmount());
+
+			Payment savedPayment = this.paymentDao.save(payment);
 
 			log.info("Payment completed: {}", savedPayment.getPaymentReference());
 
@@ -63,7 +59,6 @@ public class PaymentService {
 					.register(this.meterRegistry)
 					.increment();
 
-			// Publish success event
 			publishPaymentCompletedEvent(savedPayment, bill.getBillNumber());
 
 			return mapToResponse(savedPayment);
@@ -80,7 +75,6 @@ public class PaymentService {
 					.register(this.meterRegistry)
 					.increment();
 
-			// Publish failure event
 			publishPaymentFailedEvent(request.getBillId(), request.getAmount(), e.getMessage());
 
 			throw new ApplicationException(ErrorCode.PAYMENT_FAILED, "Payment processing failed: " + e.getMessage());
@@ -88,6 +82,7 @@ public class PaymentService {
 	}
 
 	private Bill validatePaymentRequest(CreatePaymentRequest request) {
+
 		// Idempotency check - prevent double payment
 		var existingPayment = this.paymentDao.existsByIdempotencyKey(request.getIdempotencyKey());
 		if (existingPayment) {
@@ -96,7 +91,7 @@ public class PaymentService {
 		}
 
 		// Verify bill exists
-		var bill = this.billingDao.findByBillId(request.getBillId())
+		var bill = this.billingDao.findByIdForUpdate(request.getBillId())
 				.orElseThrow(() -> new ApplicationException(ErrorCode.BILL_NOT_FOUND, "Bill not found: " + request.getBillId()));
 
 		// Validate payment amount

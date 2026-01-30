@@ -39,7 +39,6 @@ public class GlobalExceptionHandler {
 				.body(error);
 	}
 
-	// 🔹 Validation errors (DTO validation)
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ErrorResponse> handleValidationExceptions(
 			MethodArgumentNotValidException ex) {
@@ -66,7 +65,6 @@ public class GlobalExceptionHandler {
 				.body(error);
 	}
 
-	// 🔹 Security: forbidden
 	@ExceptionHandler(AccessDeniedException.class)
 	public ResponseEntity<ErrorResponse> handleAccessDenied(
 			AccessDeniedException ex) {
@@ -85,7 +83,6 @@ public class GlobalExceptionHandler {
 				.body(error);
 	}
 
-	// 🔹 Fallback handler (unexpected bugs)
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> handleGenericException(
 			Exception ex,

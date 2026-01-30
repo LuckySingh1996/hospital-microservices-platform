@@ -12,7 +12,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,11 +19,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "payments", indexes = {
-		@Index(name = "idx_payment_ref", columnList = "payment_reference"),
-		@Index(name = "idx_bill_id", columnList = "bill_id"),
-		@Index(name = "idx_idempotency_key", columnList = "idempotency_key")
-})
+@Table(name = "payments")
 @Data
 @Builder
 @NoArgsConstructor

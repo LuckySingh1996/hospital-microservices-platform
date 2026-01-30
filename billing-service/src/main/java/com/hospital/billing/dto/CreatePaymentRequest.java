@@ -11,7 +11,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Create Payment Request
 @Data
 @Builder
 @NoArgsConstructor

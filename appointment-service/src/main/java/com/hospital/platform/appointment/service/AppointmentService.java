@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.hospital.platform.appointment.dto.AppointmentBookedEvent;
@@ -32,13 +31,12 @@ public class AppointmentService {
 	private final MeterRegistry meterRegistry;
 	private final AppointmentMapper mapper;
 
-	@Transactional(isolation = Isolation.SERIALIZABLE)
+	@Transactional
 	public AppointmentResponse createAppointment(CreateAppointmentRequest request, String username) {
 		log.info("Creating appointment for patient: {} with doctor: {}", request.getPatientId(), request.getDoctorId());
 
 		validateAppointmentTime(request.getAppointmentTime());
 
-		// Check for overlapping appointments with pessimistic locking
 		LocalDateTime endTime = request.getAppointmentTime()
 				.plusMinutes(request.getDurationMinutes());
 
@@ -54,17 +52,14 @@ public class AppointmentService {
 					"Doctor is not available at the requested time. Overlapping appointment exists.");
 		}
 
-		// Save appointment
 		AppointmentEntity savedAppointment = this.dao.save(this.mapper.fromRequest(request, username));
 		log.info("Appointment created successfully: {}", savedAppointment.getAppointmentNumber());
 
-		// Increment metrics
 		Counter.builder("appointments_booked_total")
 				.tag("department", request.getDepartment())
 				.register(this.meterRegistry)
 				.increment();
 
-		// Publish Kafka event
 		publishAppointmentBookedEvent(savedAppointment);
 
 		return this.mapper.toResponse(savedAppointment);

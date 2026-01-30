@@ -13,19 +13,13 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.Data;
 
 @Entity
-@Table(name = "appointments", indexes = {
-		@Index(name = "idx_patient_id", columnList = "patient_id"),
-		@Index(name = "idx_doctor_id", columnList = "doctor_id"),
-		@Index(name = "idx_appointment_time", columnList = "appointment_time"),
-		@Index(name = "idx_status", columnList = "status")
-})
+@Table(name = "appointments")
 @Data
 public class AppointmentEntity {
 
@@ -88,7 +82,6 @@ public class AppointmentEntity {
 	@Column(name = "version")
 	private Long version;
 
-	// Future workflow fields (safe to keep if roadmap-confirmed)
 	@Column(name = "cancellation_reason", length = 500)
 	private String cancellationReason;
 

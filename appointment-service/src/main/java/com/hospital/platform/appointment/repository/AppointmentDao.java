@@ -14,12 +14,12 @@ import jakarta.persistence.PersistenceContext;
 @Repository
 public class AppointmentDao {
 
+	private static final int MAX_APPOINTMENT_DURATION_HOURS = 8;
 	@PersistenceContext
 	private EntityManager em;
 
 	public AppointmentEntity save(AppointmentEntity entity) {
 		this.em.persist(entity);
-		this.em.flush();
 		return entity;
 	}
 
@@ -44,10 +44,8 @@ public class AppointmentDao {
 				  AND a.appointmentTime >= :earliestPossibleStart
 				""";
 
-		// Calculate earliest possible start (endTime - max duration)
-		LocalDateTime earliestPossibleStart = endTime.minusHours(8); // Assume max 8hr appointments
+		LocalDateTime earliestPossibleStart = endTime.minusHours(MAX_APPOINTMENT_DURATION_HOURS);
 
-		// Get potential overlaps, then filter in Java
 		List<AppointmentEntity> potentialOverlaps = this.em
 				.createQuery(jpql, AppointmentEntity.class)
 				.setParameter("doctorId", doctorId)
@@ -55,7 +53,6 @@ public class AppointmentDao {
 				.setParameter("earliestPossibleStart", earliestPossibleStart)
 				.getResultList();
 
-		// Filter for actual overlaps
 		return potentialOverlaps.stream()
 				.filter(a -> {
 					LocalDateTime appointmentEnd = a.getAppointmentTime()

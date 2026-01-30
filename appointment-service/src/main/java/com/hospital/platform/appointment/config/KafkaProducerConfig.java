@@ -25,9 +25,9 @@ public class KafkaProducerConfig {
 	RetryTemplate kafkaRetryTemplate() {
 		RetryTemplate retryTemplate = new RetryTemplate();
 
-		SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(3); // 3 retries
+		SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(3);
 		FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
-		backOffPolicy.setBackOffPeriod(5000); // 5 sec backoff
+		backOffPolicy.setBackOffPeriod(5000); // seconds
 
 		retryTemplate.setRetryPolicy(retryPolicy);
 		retryTemplate.setBackOffPolicy(backOffPolicy);
